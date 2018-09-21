@@ -4,8 +4,8 @@ import LongCard from './LongCard';
 import Card from './Card';
 import List from './List';
 
-const dataFilter = (data, searchTerm) => {
-  data.filter(value => value.title.toLowerCase().search(searchTerm.toLowerCase()) !== -1);
+const dataFilter = (data, searchTerm) => { 
+  return data.filter(value => value.title.toLowerCase().search(searchTerm.toLowerCase()) !== -1);
 };
 
 const CardList = ({ searchTerm, data, isListView }) => {

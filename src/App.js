@@ -65,7 +65,6 @@ class App extends Component {
     return (
       <div style={{ textAlign: 'center' }}>
         <Head title="SpaceX launches" imgSrc={logo} />
-
         <Controls>
           <Search type="text" placeholder="Search" onChange={e => this.changeText(e)} />
           <PrimaryButton type="button" onClick={() => this.handleClick()}>
