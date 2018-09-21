@@ -1,11 +1,12 @@
 import React from 'react';
 import PropTypes from 'prop-types';
+import AppHeader from './AppHeader';
 
 const Head = ({ title, imgSrc }) => (
-  <header className="App-header">
+  <AppHeader>
     <img src={imgSrc} height="100" width="100" alt="logo" />
-    <h1 className="App-title">{title}</h1>
-  </header>
+    <h1 style={{ fontSize: '1.5em' }}>{title}</h1>
+  </AppHeader>
 );
 
 Head.propTypes = {

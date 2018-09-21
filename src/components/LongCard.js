@@ -31,7 +31,12 @@ LongCard.propTypes = {
   title: PropTypes.string.isRequired,
   img: PropTypes.string.isRequired,
   info: PropTypes.string,
-  social: PropTypes.object,
+  social: PropTypes.instanceOf(Object),
+};
+
+LongCard.defaultProps = {
+  info: '',
+  social: {},
 };
 
 export default LongCard;

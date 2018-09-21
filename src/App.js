@@ -1,12 +1,13 @@
 import React, { Component } from 'react';
 import logo from './logo.svg';
 
-import './App.css';
 import Head from './components/Head';
 import CardList from './components/CardList';
 import Controls from './components/Controls';
 import Search from './components/Search';
 import PrimaryButton from './components/PrimaryButton';
+import Loading from './components/Loading';
+import Error from './components/Error';
 
 const url = 'https://api.spacexdata.com/v2/launches/';
 
@@ -15,27 +16,29 @@ class App extends Component {
     super(props);
     this.state = {
       data: [],
-      error: null,
-      listView: true,
+      isError: false,
+      isListView: true,
       searchTerm: '',
+      isLoading: true,
     };
   }
 
   async componentDidMount() {
+    this.setState({ isError: false, isLoading: true });
     try {
       const result = await fetch(url);
       const flights = await result.json();
-      const newData = [];
-      flights.map(flight => newData.push(this.transformData(flight)));
-      this.setState({ data: newData.reverse() });
+      let newData = [];
+      newData = flights.map(flight => (this.transformData(flight)));
+      this.setState({ data: newData.reverse(), isLoading: false });
     } catch (error) {
-      this.setState({ error });
+      this.setState({ isError: true, isLoading: false });
     }
   }
 
   handleClick = () => {
     this.setState(prevState => ({
-      listView: !prevState.listView,
+      isListView: !prevState.isListView,
     }));
   }
 
@@ -57,20 +60,22 @@ class App extends Component {
 
   render() {
     const {
-      data, error, listView, searchTerm,
+      data, isError, isListView, searchTerm, isLoading,
     } = this.state;
     return (
-      <div className="App">
+      <div style={{ textAlign: 'center' }}>
         <Head title="SpaceX launches" imgSrc={logo} />
-        {error && <div>{error}</div>}
+
         <Controls>
           <Search type="text" placeholder="Search" onChange={e => this.changeText(e)} />
           <PrimaryButton type="button" onClick={() => this.handleClick()}>
             <span>Switch to </span>
-            {listView ? 'IconView' : 'ListView'}
+            {isListView ? 'IconView' : 'ListView'}
           </PrimaryButton>
         </Controls>
-        {data && <CardList data={data} searchTerm={searchTerm} listView={listView} />}
+        <Loading isLoading={isLoading} />
+        <Error isError={isError} />
+        <CardList data={data} searchTerm={searchTerm} listView={isListView} />
       </div>
     );
   }

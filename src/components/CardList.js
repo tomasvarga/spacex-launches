@@ -5,7 +5,7 @@ import Card from './Card';
 import List from './List';
 
 const dataFilter = (data, searchTerm) => {
-  return data.filter(value => value.title.toLowerCase().search(searchTerm.toLowerCase()) !== -1);
+  data.filter(value => value.title.toLowerCase().search(searchTerm.toLowerCase()) !== -1);
 };
 
 const CardList = ({ searchTerm, data, listView }) => {
@@ -38,5 +38,10 @@ CardList.propTypes = {
   data: PropTypes.instanceOf(Array).isRequired,
   listView: PropTypes.bool.isRequired,
 };
+
+CardList.defaultProps = {
+  searchTerm: '',
+};
+
 
 export default CardList;

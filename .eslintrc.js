@@ -5,6 +5,7 @@ module.exports = {
         "react/jsx-filename-extension": [1, { "extensions": [".js", ".jsx"] }],
     },
     "globals": {
-        "fetch": false
+        "fetch": false,
+        "document": false
     }
 };
