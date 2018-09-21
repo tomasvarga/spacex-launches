@@ -8,11 +8,11 @@ const dataFilter = (data, searchTerm) => {
   data.filter(value => value.title.toLowerCase().search(searchTerm.toLowerCase()) !== -1);
 };
 
-const CardList = ({ searchTerm, data, listView }) => {
+const CardList = ({ searchTerm, data, isListView }) => {
   const newData = searchTerm ? dataFilter(data, searchTerm) : data;
   return (
-    <List style={{ flexDirection: listView ? 'column' : 'row' }}>
-      {newData.map(value => (listView ? (
+    <List style={{ flexDirection: isListView ? 'column' : 'row' }}>
+      {newData.map(value => (isListView ? (
         <LongCard
           key={value.id}
           title={value.title}
@@ -36,7 +36,7 @@ const CardList = ({ searchTerm, data, listView }) => {
 CardList.propTypes = {
   searchTerm: PropTypes.string,
   data: PropTypes.instanceOf(Array).isRequired,
-  listView: PropTypes.bool.isRequired,
+  isListView: PropTypes.bool.isRequired,
 };
 
 CardList.defaultProps = {

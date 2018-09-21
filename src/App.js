@@ -75,7 +75,7 @@ class App extends Component {
         </Controls>
         <Loading isLoading={isLoading} />
         <Error isError={isError} />
-        <CardList data={data} searchTerm={searchTerm} listView={isListView} />
+        <CardList data={data} searchTerm={searchTerm} isListView={isListView} />
       </div>
     );
   }
