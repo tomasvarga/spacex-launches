@@ -28,8 +28,7 @@ class App extends Component {
     try {
       const result = await fetch(url);
       const flights = await result.json();
-      let newData = [];
-      newData = flights.map(flight => (this.transformData(flight)));
+      const newData = flights.map(flight => (this.transformData(flight)));
       this.setState({ data: newData.reverse(), isLoading: false });
     } catch (error) {
       this.setState({ isError: true, isLoading: false });
