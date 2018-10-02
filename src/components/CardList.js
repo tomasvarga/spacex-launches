@@ -1,7 +1,7 @@
 import React from 'react';
 import PropTypes from 'prop-types';
 import LongCard from './LongCard';
-import Card from './Card';
+import PhotoCard from './PhotoCard';
 import List from './List';
 
 const dataFilter = (data, searchTerm) => (
@@ -22,11 +22,10 @@ const CardList = ({ searchTerm, data, isListView }) => {
           info={value.info}
         />
       ) : (
-        <Card
+        <PhotoCard
           key={value.id}
           title={value.title}
           img={value.img}
-          subtitle={value.subtitle}
         />
       )))}
     </List>

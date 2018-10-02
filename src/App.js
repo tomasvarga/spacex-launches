@@ -9,15 +9,20 @@ import PrimaryButton from './components/PrimaryButton';
 import Loading from './components/Loading';
 import Error from './components/Error';
 
-const url = 'https://api.spacexdata.com/v2/launches/';
+const mainDataUrl = 'https://api.spacexdata.com/v2/launches/';
+const accessKey = '048e18203982e5ba8e39d8cac99b504a240bdb7aa3561de136a36d2b52e2f835';
+const photoCollectionUrl = `https://api.unsplash.com/collections/1111575/photos/?client_id=${accessKey}`;
+
 
 class App extends Component {
   constructor(props) {
     super(props);
     this.state = {
       data: [],
+      cachedData: [],
       isError: false,
       isListView: true,
+      isPhotosView: false,
       searchTerm: '',
       isLoading: true,
     };
@@ -26,7 +31,7 @@ class App extends Component {
   async componentDidMount() {
     this.setState({ isError: false, isLoading: true });
     try {
-      const result = await fetch(url);
+      const result = await fetch(mainDataUrl);
       const flights = await result.json();
       const newData = flights.map(flight => (this.transformData(flight)));
       this.setState({ data: newData.reverse(), isLoading: false });
@@ -39,6 +44,20 @@ class App extends Component {
     this.setState(prevState => ({
       isListView: !prevState.isListView,
     }));
+  }
+
+  handleCollectionClick = () => {
+    this.setState(prevState => ({
+      isPhotosView: !prevState.isPhotosView,
+    }));
+    const { data, cachedData, isPhotosView } = this.state;
+    // redo to bi-transfer <-> data and cachedData
+    if (!isPhotosView) {
+      this.setState({ cachedData: data });
+    } else {
+      this.setState({ data: cachedData });
+    }
+    this.loadPhotosView();
   }
 
   changeText = (event) => {
@@ -57,9 +76,31 @@ class App extends Component {
     return d;
   }
 
+  transformPhoto = (photo) => {
+    const p = {};
+    p.id = photo.id;
+    p.title = photo.description;
+    p.img = photo.urls.small;
+    p.social = photo.links;
+    return p;
+  }
+
+  async loadPhotosView() {
+    this.setState({ isError: false, isLoading: true });
+    try {
+      const result = await fetch(photoCollectionUrl);
+      const photos = await result.json();
+      console.log(photos);
+      const newData = photos.map(photo => (this.transformPhoto(photo)));
+      this.setState({ data: newData, isLoading: false });
+    } catch (error) {
+      this.setState({ isError: true, isLoading: false });
+    }
+  }
+
   render() {
     const {
-      data, isError, isListView, searchTerm, isLoading,
+      data, isError, isListView, searchTerm, isLoading, isPhotosView,
     } = this.state;
     return (
       <div style={{ textAlign: 'center' }}>
@@ -70,10 +111,14 @@ class App extends Component {
             <span>Switch to </span>
             {isListView ? 'IconView' : 'ListView'}
           </PrimaryButton>
+          <PrimaryButton type="button" onClick={() => this.handleCollectionClick()}>
+            <span>SpacePhotos View </span>
+            { isPhotosView ? 'ON' : 'OFF' }
+          </PrimaryButton>
         </Controls>
         <Loading isLoading={isLoading} />
         <Error isError={isError} />
-        <CardList data={data} searchTerm={searchTerm} isListView={isListView} />
+        <CardList data={data} searchTerm={searchTerm} isPhotosView={isPhotosView} isListView={isListView} />
       </div>
     );
   }
