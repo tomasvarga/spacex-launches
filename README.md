@@ -1,4 +1,4 @@
-React test project with SpaceX API. 
+React test project with SpaceX API and Unsplash API. 
 
 # Instalation instructions
 * npm install
