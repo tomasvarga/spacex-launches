@@ -27,7 +27,7 @@ const LongCard = ({
 };
 
 LongCard.propTypes = {
-  subtitle: PropTypes.string.isRequired,
+  subtitle: PropTypes.string,
   title: PropTypes.string.isRequired,
   img: PropTypes.string.isRequired,
   info: PropTypes.string,
@@ -35,6 +35,7 @@ LongCard.propTypes = {
 };
 
 LongCard.defaultProps = {
+  subtitle: '',
   info: '',
   social: {},
 };

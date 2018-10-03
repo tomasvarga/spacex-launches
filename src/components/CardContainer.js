@@ -13,6 +13,7 @@ const CardContainer = styled.div`
   cursor: pointer;
   overflow: auto;
   z-index: 0;
+  filter: blur(0px);
 
   & > div {
     margin-left: 20px;

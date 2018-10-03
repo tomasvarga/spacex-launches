@@ -5,6 +5,7 @@ const List = styled.div`
   justify-content: center;
   align-items:center;
   flex-wrap: wrap;
+  margin-bottom: 50px;
 `;
 
 export default List;
