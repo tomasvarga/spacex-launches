@@ -6,6 +6,7 @@ import CardListWithInfinityScroll from './components/CardListWithInfinityScroll'
 import Controls from './components/Controls';
 import Search from './components/Search';
 import PrimaryButton from './components/PrimaryButton';
+import backend from './backend';
 
 const mainDataUrl = 'https://api.spacexdata.com/v2/launches/';
 const accessKey = '048e18203982e5ba8e39d8cac99b504a240bdb7aa3561de136a36d2b52e2f835';
@@ -116,16 +117,17 @@ class App extends Component {
       return null;
     }
     try {
-      const result = await fetch(`${photoCollectionUrl}&per_page=${requiredItemsPerPage}&page=${nextPage}`);
-      const photos = await result.json();
-      const header = await result.headers;
-      const totals = await { totalPagesPerPage: header.get('X-Per-Page'), totalPages: header.get('X-Total') };
-      const newPages = this.calculatePages(totals);
-      const newData = photos.map(photo => (this.transformPhoto(photo)));
+      const url = `${photoCollectionUrl}&per_page=${requiredItemsPerPage}&page=${nextPage}`;
+      const back = { url, headers: { page: 'X-Per-Page', total: 'X-Total' } };
+      const result = await backend(back);
+      const newPages = this.calculatePages(result.totals);
+      const newData = result.data.map(photo => (this.transformPhoto(photo)));
       const results = { data: newData, page: nextPage, maxPages: newPages };
       this.setState(this.updateResults(results));
+      return null;
     } catch (error) {
       this.setState({ isError: true, isLoading: false });
+      return null;
     }
   }
 
