@@ -18,22 +18,24 @@ const CardList = ({
   return (
     <div>
       <List style={{ flexDirection: isListView ? 'column' : 'row' }}>
-        {newData.map(value => (isListView ? (
-          <LongCard
-            key={value.id}
-            title={value.title}
-            img={value.img}
-            subtitle={value.subtitle}
-            social={value.social}
-            info={value.info}
-          />
-        ) : (
-          <PhotoCard
-            key={value.id}
-            title={value.title}
-            img={value.img}
-          />
-        )))}
+        {isListView
+          ? newData.map(value => (
+            <LongCard
+              key={value.id}
+              title={value.title}
+              img={value.img}
+              subtitle={value.subtitle}
+              social={value.social}
+              info={value.info}
+            />
+          ))
+          : newData.map(value => (
+            <PhotoCard
+              key={value.id}
+              title={value.title}
+              img={value.img}
+            />
+          ))}
       </List>
       <Loading isLoading={isLoading} />
       <Error isError={isError} />

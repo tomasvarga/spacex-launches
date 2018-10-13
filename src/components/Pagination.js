@@ -18,4 +18,5 @@ Pagination.propTypes = {
   onToNextPage: PropTypes.func.isRequired,
 };
 
+
 export default Pagination;

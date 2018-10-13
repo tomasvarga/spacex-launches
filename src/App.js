@@ -2,7 +2,7 @@ import React, { Component } from 'react';
 import logo from './logo.svg';
 
 import Head from './components/Head';
-import CardListWithInfinityScroll from './components/CardListWithInfinityScroll';
+import CardListFetchWithScroll from './components/CardListFetchWithScroll';
 import Controls from './components/Controls';
 import Search from './components/Search';
 import PrimaryButton from './components/PrimaryButton';
@@ -49,16 +49,17 @@ class App extends Component {
   }
 
   handleCollectionClick = () => {
-    this.setState(prevState => ({
-      isPhotosView: !prevState.isPhotosView,
-    }), () => {
-      const { data, cachedData, isPhotosView } = this.state;
+    this.setState((prevState) => {
+      const isPhotosView = !prevState.isPhotosView;
+      const { cachedData, data } = this.state;
       if (isPhotosView) {
-        this.setState({ cachedData: data, isPaginationActivated: true, data: [] });
-        this.loadNewPage();
-      } else {
-        this.setState({ data: cachedData, isPaginationActivated: false, actualPage: 0 });
+        return {
+          isPhotosView, cachedData: data, isPaginationActivated: true, data: [],
+        };
       }
+      return {
+        isPhotosView, data: cachedData, isPaginationActivated: false, actualPage: 0,
+      };
     });
   }
 
@@ -89,17 +90,7 @@ class App extends Component {
     return p;
   }
 
-  calculatePages = (totals) => {
-    const { totalPages, totalPagesPerPage } = totals;
-    return Math.ceil(totalPages / totalPagesPerPage);
-  }
-
-  updatePages = (actualPage, maxPages) => {
-    if (actualPage === maxPages) {
-      this.setState({ isPaginationActivated: false });
-    }
-    return (actualPage <= maxPages) ? (actualPage + 1) : (maxPages + 1);
-  }
+  getNextPage = (actualPage, maxPages) => ((actualPage <= maxPages) && (actualPage + 1));
 
   updateResults = results => prevState => ({
     data: [...prevState.data, ...results.data],
@@ -111,18 +102,21 @@ class App extends Component {
   async loadNewPage() {
     this.setState({ isError: false, isLoading: true });
     const { requiredItemsPerPage, actualPage, maxPages } = this.state;
-    const nextPage = this.updatePages(actualPage, maxPages);
-    if (nextPage > maxPages) {
-      this.setState({ isLoading: false });
-      return null;
+    const nextPage = this.getNextPage(actualPage, maxPages);
+    if (actualPage === maxPages) {
+      this.setState({ isPaginationActivated: false, isLoading: false });
+      return false;
     }
     try {
-      const url = `${photoCollectionUrl}&per_page=${requiredItemsPerPage}&page=${nextPage}`;
-      const back = { url, headers: { page: 'X-Per-Page', total: 'X-Total' } };
-      const result = await backend(back);
-      const newPages = this.calculatePages(result.totals);
+      const fetchUrlWithHeaders = {
+        url: `${photoCollectionUrl}&per_page=${requiredItemsPerPage}&page=${nextPage}`,
+        headers: { page: 'X-Per-Page', total: 'X-Total' },
+      };
+      const result = await backend(fetchUrlWithHeaders);
+      const { totalPages, totalPagesPerPage } = result.totals;
+      const newPagesCount = Math.ceil(totalPages / totalPagesPerPage);
       const newData = result.data.map(photo => (this.transformPhoto(photo)));
-      const results = { data: newData, page: nextPage, maxPages: newPages };
+      const results = { data: newData, page: nextPage, maxPages: newPagesCount };
       this.setState(this.updateResults(results));
       return null;
     } catch (error) {
@@ -145,12 +139,12 @@ class App extends Component {
             {isListView ? 'IconView' : 'ListView'}
           </PrimaryButton>
           <span style={{ marginTop: '20px' }}> SpacePhotos with Pagination </span>
-          <PrimaryButton type="button" onClick={() => this.handleCollectionClick()}>
+          <PrimaryButton type="button" onClick={this.handleCollectionClick}>
             <span>SpacePhotos View</span>
             { isPhotosView ? 'ON' : 'OFF' }
           </PrimaryButton>
         </Controls>
-        <CardListWithInfinityScroll
+        <CardListFetchWithScroll
           data={data}
           searchTerm={searchTerm}
           isLoading={isLoading}
@@ -158,7 +152,7 @@ class App extends Component {
           isPhotosView={isPhotosView}
           isPaginationActivated={isPaginationActivated}
           isListView={isListView}
-          onToNextPage={() => (isPhotosView ? this.loadNewPage() : {})}
+          onToNextPage={() => (isPaginationActivated ? this.loadNewPage() : {})}
         />
       </div>
     );

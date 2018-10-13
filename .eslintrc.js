@@ -7,6 +7,7 @@ module.exports = {
     "globals": {
         "fetch": false,
         "document": false,
-        "window": false
+        "window": false,
+        "it": false,
     }
 };
