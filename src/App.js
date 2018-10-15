@@ -94,7 +94,7 @@ class App extends Component {
 
   updateResults = results => prevState => ({
     data: [...prevState.data, ...results.data],
-    actualPage: results.page,
+    actualPage: results.actualPage,
     maxPages: results.maxPages,
     isLoading: false,
   })
@@ -103,7 +103,7 @@ class App extends Component {
     this.setState({ isError: false, isLoading: true });
     const { requiredItemsPerPage, actualPage, maxPages } = this.state;
     const nextPage = this.getNextPage(actualPage, maxPages);
-    if (actualPage === maxPages) {
+    if (nextPage > maxPages) {
       this.setState({ isPaginationActivated: false, isLoading: false });
       return false;
     }
@@ -116,7 +116,7 @@ class App extends Component {
       const { totalPages, totalPagesPerPage } = result.totals;
       const newPagesCount = Math.ceil(totalPages / totalPagesPerPage);
       const newData = result.data.map(photo => (this.transformPhoto(photo)));
-      const results = { data: newData, page: nextPage, maxPages: newPagesCount };
+      const results = { data: newData, actualPage: nextPage, maxPages: newPagesCount };
       this.setState(this.updateResults(results));
       return null;
     } catch (error) {
