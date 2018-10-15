@@ -102,21 +102,21 @@ class App extends Component {
   async loadNewPage() {
     this.setState({ isError: false, isLoading: true });
     const { requiredItemsPerPage, actualPage, maxPages } = this.state;
-    const nextPage = this.getNextPage(actualPage, maxPages);
-    if (nextPage > maxPages) {
-      this.setState({ isPaginationActivated: false, isLoading: false });
+    const currentPage = this.getNextPage(actualPage, maxPages);
+    if (currentPage > maxPages) {
+      this.setState({ isPaginationActivated: false, isLoading: false, actualPage: currentPage });
       return false;
     }
     try {
       const fetchUrlWithHeaders = {
-        url: `${photoCollectionUrl}&per_page=${requiredItemsPerPage}&page=${nextPage}`,
+        url: `${photoCollectionUrl}&per_page=${requiredItemsPerPage}&page=${currentPage}`,
         headers: { page: 'X-Per-Page', total: 'X-Total' },
       };
       const result = await backend(fetchUrlWithHeaders);
       const { totalPages, totalPagesPerPage } = result.totals;
       const newPagesCount = Math.ceil(totalPages / totalPagesPerPage);
       const newData = result.data.map(photo => (this.transformPhoto(photo)));
-      const results = { data: newData, actualPage: nextPage, maxPages: newPagesCount };
+      const results = { data: newData, actualPage: currentPage, maxPages: newPagesCount };
       this.setState(this.updateResults(results));
       return null;
     } catch (error) {
