@@ -2,17 +2,15 @@ import React, { Component } from 'react';
 import logo from './logo.svg';
 
 import Head from './components/Head';
-import CardList from './components/CardList';
+import CardListFetchWithScroll from './components/CardListFetchWithScroll';
 import Controls from './components/Controls';
 import Search from './components/Search';
 import PrimaryButton from './components/PrimaryButton';
-import Loading from './components/Loading';
-import Error from './components/Error';
+import backend from './backend';
 
 const mainDataUrl = 'https://api.spacexdata.com/v2/launches/';
 const accessKey = '048e18203982e5ba8e39d8cac99b504a240bdb7aa3561de136a36d2b52e2f835';
 const photoCollectionUrl = `https://api.unsplash.com/collections/1111575/photos/?client_id=${accessKey}`;
-
 
 class App extends Component {
   constructor(props) {
@@ -23,8 +21,12 @@ class App extends Component {
       isError: false,
       isListView: true,
       isPhotosView: false,
-      searchTerm: '',
+      isPaginationActivated: false,
       isLoading: true,
+      searchTerm: '',
+      requiredItemsPerPage: 28,
+      actualPage: 0,
+      maxPages: 1,
     };
   }
 
@@ -47,17 +49,18 @@ class App extends Component {
   }
 
   handleCollectionClick = () => {
-    this.setState(prevState => ({
-      isPhotosView: !prevState.isPhotosView,
-    }));
-    const { data, cachedData, isPhotosView } = this.state;
-    // redo to bi-transfer <-> data and cachedData
-    if (!isPhotosView) {
-      this.setState({ cachedData: data });
-    } else {
-      this.setState({ data: cachedData });
-    }
-    this.loadPhotosView();
+    this.setState((prevState) => {
+      const isPhotosView = !prevState.isPhotosView;
+      const { cachedData, data } = this.state;
+      if (isPhotosView) {
+        return {
+          isPhotosView, cachedData: data, isPaginationActivated: true, data: [],
+        };
+      }
+      return {
+        isPhotosView, data: cachedData, isPaginationActivated: false, actualPage: 0,
+      };
+    });
   }
 
   changeText = (event) => {
@@ -79,28 +82,52 @@ class App extends Component {
   transformPhoto = (photo) => {
     const p = {};
     p.id = photo.id;
-    p.title = photo.description;
+    p.title = (photo.description === null) ? '' : photo.description;
     p.img = photo.urls.small;
     p.social = photo.links;
+    p.subtitle = '';
+    p.info = '';
     return p;
   }
 
-  async loadPhotosView() {
+  getNextPage = (actualPage, maxPages) => ((actualPage <= maxPages) && (actualPage + 1));
+
+  updateResults = results => prevState => ({
+    data: [...prevState.data, ...results.data],
+    actualPage: results.actualPage,
+    maxPages: results.maxPages,
+    isLoading: false,
+  })
+
+  async loadNewPage() {
     this.setState({ isError: false, isLoading: true });
+    const { requiredItemsPerPage, actualPage, maxPages } = this.state;
+    const currentPage = this.getNextPage(actualPage, maxPages);
+    if (currentPage > maxPages) {
+      this.setState({ isPaginationActivated: false, isLoading: false, actualPage: currentPage });
+      return false;
+    }
     try {
-      const result = await fetch(photoCollectionUrl);
-      const photos = await result.json();
-      console.log(photos);
-      const newData = photos.map(photo => (this.transformPhoto(photo)));
-      this.setState({ data: newData, isLoading: false });
+      const fetchUrlWithHeaders = {
+        url: `${photoCollectionUrl}&per_page=${requiredItemsPerPage}&page=${currentPage}`,
+        headers: { page: 'X-Per-Page', total: 'X-Total' },
+      };
+      const result = await backend(fetchUrlWithHeaders);
+      const { totalPages, totalPagesPerPage } = result.totals;
+      const newPagesCount = Math.ceil(totalPages / totalPagesPerPage);
+      const newData = result.data.map(photo => (this.transformPhoto(photo)));
+      const results = { data: newData, actualPage: currentPage, maxPages: newPagesCount };
+      this.setState(this.updateResults(results));
+      return null;
     } catch (error) {
       this.setState({ isError: true, isLoading: false });
+      return null;
     }
   }
 
   render() {
     const {
-      data, isError, isListView, searchTerm, isLoading, isPhotosView,
+      data, isError, isListView, searchTerm, isLoading, isPhotosView, isPaginationActivated,
     } = this.state;
     return (
       <div style={{ textAlign: 'center' }}>
@@ -111,14 +138,22 @@ class App extends Component {
             <span>Switch to </span>
             {isListView ? 'IconView' : 'ListView'}
           </PrimaryButton>
-          <PrimaryButton type="button" onClick={() => this.handleCollectionClick()}>
-            <span>SpacePhotos View </span>
+          <span style={{ marginTop: '20px' }}> SpacePhotos with Pagination </span>
+          <PrimaryButton type="button" onClick={this.handleCollectionClick}>
+            <span>SpacePhotos View</span>
             { isPhotosView ? 'ON' : 'OFF' }
           </PrimaryButton>
         </Controls>
-        <Loading isLoading={isLoading} />
-        <Error isError={isError} />
-        <CardList data={data} searchTerm={searchTerm} isPhotosView={isPhotosView} isListView={isListView} />
+        <CardListFetchWithScroll
+          data={data}
+          searchTerm={searchTerm}
+          isLoading={isLoading}
+          isError={isError}
+          isPhotosView={isPhotosView}
+          isPaginationActivated={isPaginationActivated}
+          isListView={isListView}
+          onToNextPage={() => (isPaginationActivated ? this.loadNewPage() : {})}
+        />
       </div>
     );
   }
